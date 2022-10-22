@@ -16,20 +16,21 @@ class Signal<T> {
 
   async tick() {
     return new Promise((resolve) =>
-      this.on_change(() => {
-        console.log("here");
+      this.#on_change(() => {
         resolve(this.#value);
         return true;
       })
     );
   }
 
-  on_change(fn) {
+  #on_change(fn) {
     this.#listeners.push(fn);
   }
 
   set value(new_value) {
     this.#value = new_value;
+    // TODO: we don't rely on on_change anywhere else.. couldn't
+    // we just completely flush all the listeners?
     this.#listeners = this.#listeners.filter((fn) => !fn());
   }
   get value() {

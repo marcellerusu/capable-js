@@ -20,7 +20,7 @@ let handlers: Map<Function, (...args: any[]) => any> = new Map();
 
 export function register<T>(
   type: { new (...args: any[]): T },
-  handler: (component: Component, effect: T) => any
+  handler: (component: Component, effect: T) => T | Promise<any>
 ) {
   handlers.set(type, handler);
 }

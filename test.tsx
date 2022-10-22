@@ -7,6 +7,7 @@ import lock from "./effects/lock.js";
 
 async function* Hello() {
   yield <div>loading...</div>;
+
   let { title, completed } = yield http.get(
     "https://jsonplaceholder.typicode.com/todos/1"
   );

@@ -1,4 +1,4 @@
-import { Component, register } from "../framework.js";
+import { register } from "../framework.js";
 
 class Lock {
   locked = true;
@@ -13,14 +13,14 @@ class Lock {
 
   async tick() {
     return new Promise((resolve) =>
-      this.on_change(() => {
+      this.#on_change(() => {
         resolve(this.locked);
         return true;
       })
     );
   }
 
-  on_change(fn) {
+  #on_change(fn) {
     this.#listeners.push(fn);
   }
 
@@ -30,7 +30,7 @@ class Lock {
   }
 }
 
-register(Lock, (_component: Component, lock) => {
+register<Lock>(Lock, (_component, lock) => {
   return lock;
 });
 

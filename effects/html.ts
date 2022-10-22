@@ -60,8 +60,8 @@ export function h(
 
 export function html() {}
 
-register(HtmlNode, (component: Component, node: HtmlNode) => {
+register<HtmlNode>(HtmlNode, (component, node) => {
   component.html_node = node.render();
   component.invalidate();
-  return component.html_node;
+  return node;
 });
