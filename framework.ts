@@ -8,25 +8,28 @@ export class Component {
   }
 
   invalidate() {
-    this.mount.replaceChildren(this.html_node);
+    this.mount?.replaceChildren(this.html_node);
   }
 }
 
-export function make(component_fn: () => AsyncGenerator, mount: HTMLElement) {
+export function make(component_fn: () => AsyncGenerator, mount?: HTMLElement) {
   return new Component(component_fn, mount);
 }
 
-let handlers: Map<Function, (...args: any[]) => any> = new Map();
+type InstanceOf<T> = { new (...args: any[]): T };
+type Handler<T> = (
+  component: Component,
+  effect: T
+) => T | Promise<any> | AsyncGenerator;
 
-export function register<T>(
-  type: { new (...args: any[]): T },
-  handler: (component: Component, effect: T) => T | Promise<any>
-) {
+let handlers: Map<InstanceOf<any>, Handler<any>> = new Map();
+
+export function register<T>(type: InstanceOf<T>, handler: Handler<T>) {
   handlers.set(type, handler);
 }
 
-export async function tick(component: Component) {
-  let gen = component.fn();
+export async function tick(component: Component, fn) {
+  let gen = fn ? fn() : component.fn();
   let done = false,
     action = null,
     last_result = null;
@@ -35,8 +38,15 @@ export async function tick(component: Component) {
     if (done) break;
 
     let handler = handlers.get((action as any).constructor);
+
+    if (handler.constructor.name === "AsyncGeneratorFunction") {
+      let gen = await handler?.(component, action);
+      for await (let _ of gen) {
+      }
+    }
     last_result = await handler?.(component, action);
     if (!handler)
       throw new Error("unknown handler " + (action as any).constructor.name);
   } while (!done);
+  return action;
 }

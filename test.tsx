@@ -5,12 +5,32 @@ import http from "./effects/http.js";
 import sleep from "./effects/sleep.js";
 import lock from "./effects/lock.js";
 
+async function* LockedButton({ children }) {
+  let $lock = yield lock.new();
+  for await (let _ of $lock) {
+    yield (
+      <div>
+        {children}
+        <button on:click={() => $lock.unlock()}>finish</button>
+      </div>
+    );
+  }
+  return "super done";
+}
+
 async function* Hello() {
   yield <div>loading...</div>;
 
   let { title, completed } = yield http.get(
     "https://jsonplaceholder.typicode.com/todos/1"
   );
+
+  let value = yield (
+    <LockedButton children>
+      <div>Run through this</div>
+    </LockedButton>
+  );
+  console.log({ value });
 
   yield (
     <div>

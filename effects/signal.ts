@@ -1,7 +1,7 @@
 import { Component, register } from "../framework.js";
 
 class Signal<T> {
-  #value;
+  #value: T;
   #listeners = [];
   constructor(value: T) {
     this.#value = value;
