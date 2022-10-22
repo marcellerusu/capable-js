@@ -24,7 +24,7 @@ async function* Hello() {
 
 ```jsx
 function Hello() {
-  let [name, setName] = useState(");
+  let [name, setName] = useState("");
   let [isSubmitted, setIsSubmitted] = useState(false);
 
   if (!isSubmitted) {
