@@ -30,7 +30,7 @@ class Lock {
   }
 }
 
-register<Lock>(Lock, (_component, lock) => {
+register(Lock, (_component, lock) => {
   return lock;
 });
 

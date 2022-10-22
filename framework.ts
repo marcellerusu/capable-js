@@ -28,8 +28,8 @@ export function register<T>(type: InstanceOf<T>, handler: Handler<T>) {
   handlers.set(type, handler);
 }
 
-export async function tick(component: Component, fn) {
-  let gen = fn ? fn() : component.fn();
+export async function tick(component: Component) {
+  let gen = component.fn();
   let done = false,
     action = null,
     last_result = null;
@@ -38,12 +38,6 @@ export async function tick(component: Component, fn) {
     if (done) break;
 
     let handler = handlers.get((action as any).constructor);
-
-    if (handler.constructor.name === "AsyncGeneratorFunction") {
-      let gen = await handler?.(component, action);
-      for await (let _ of gen) {
-      }
-    }
     last_result = await handler?.(component, action);
     if (!handler)
       throw new Error("unknown handler " + (action as any).constructor.name);

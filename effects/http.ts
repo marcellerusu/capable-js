@@ -20,7 +20,7 @@ export default {
   },
 };
 
-register<HttpReq>(HttpReq, async (_component: Component, req: HttpReq) => {
+register(HttpReq, async (_component: Component, req: HttpReq) => {
   if (req.method !== "get") throw new Error("expected http get to be a get");
   let data = await fetch(req.url).then((r) => r.json());
   return data;

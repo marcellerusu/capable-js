@@ -7,6 +7,7 @@ import lock from "./effects/lock.js";
 
 async function* LockedButton({ children }) {
   let $lock = yield lock.new();
+
   for await (let _ of $lock) {
     yield (
       <div>
@@ -15,7 +16,8 @@ async function* LockedButton({ children }) {
       </div>
     );
   }
-  return "super done";
+
+  return { data: 10 };
 }
 
 async function* Hello() {
@@ -25,12 +27,13 @@ async function* Hello() {
     "https://jsonplaceholder.typicode.com/todos/1"
   );
 
-  let value = yield (
+  let result = yield* (
     <LockedButton children>
       <div>Run through this</div>
     </LockedButton>
   );
-  console.log({ value });
+
+  console.log(result);
 
   yield (
     <div>

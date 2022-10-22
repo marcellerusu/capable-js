@@ -1,9 +1,9 @@
-import { make, register, tick } from "../framework.js";
+import { register } from "../framework.js";
 
 export class HtmlNode {
   name: string;
   attrs: Record<string, string>;
-  children: (HtmlNode | FnNode | string)[];
+  children: (HtmlNode | Array<any> | string)[];
   event_listeners: Record<string, Function>;
   rendered_html: HTMLElement;
 
@@ -17,7 +17,7 @@ export class HtmlNode {
     name: string,
     attrs: Record<string, string>,
     event_listeners: Record<string, Function>,
-    children: (HtmlNode | FnNode | string)[]
+    children: (HtmlNode | Array<any> | string)[]
   ) {
     this.name = name;
     this.attrs = attrs;
@@ -36,8 +36,6 @@ export class HtmlNode {
         for (let c of child) {
           elem.appendChild(await c.render());
         }
-      } else if (child instanceof FnNode) {
-        throw new Error("wtf");
       } else {
         elem.appendChild(new Text(child));
       }
@@ -56,29 +54,13 @@ function assert(bool, msg) {
   if (!bool) throw new Error(msg);
 }
 
-class FnNode {
-  fn: AsyncGeneratorFunction;
-  props: Record<string, string>;
-  value;
-
-  constructor(fn: AsyncGeneratorFunction, props: Record<string, any>) {
-    this.fn = fn;
-    this.props = props;
-  }
-
-  async render(component) {
-    this.value = await tick(component, () => this.fn(this.props));
-    return component.html_node;
-  }
-}
-
 export function h(
   node_type: AsyncGeneratorFunction | string,
   attrs: Record<string, any>,
-  ...children: (HtmlNode | FnNode | string)[]
-): HtmlNode | FnNode {
+  ...children: (HtmlNode | string)[]
+): HtmlNode | AsyncGenerator {
   if (node_type instanceof Function) {
-    return new FnNode(node_type, { ...attrs, children });
+    return node_type({ ...attrs, children });
   } else {
     let event_listeners = {};
     for (let [key, value] of Object.entries(attrs || {})) {
@@ -100,11 +82,4 @@ register(HtmlNode, async (component, node) => {
   component.html_node = await node.render();
   component.invalidate();
   return node;
-});
-
-register(FnNode, async function* (component, node) {
-  console.log(component);
-  let html = await node.render(component);
-
-  yield HtmlNode.fromHtml(html);
 });
