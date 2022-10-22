@@ -1,10 +1,9 @@
-import { Component, register } from "./framework.js";
-import { Signal } from "./signal.js";
+import { Component, register } from "../framework.js";
 
 export class HtmlNode {
   name: string;
   attrs: Record<string, string>;
-  children: (HtmlNode | Signal | string)[];
+  children: (HtmlNode | string)[];
   event_listeners: Record<string, Function>;
   constructor(
     name: string,
@@ -16,18 +15,6 @@ export class HtmlNode {
     this.attrs = attrs;
     this.children = children;
     this.event_listeners = event_listeners;
-  }
-
-  has_signal() {
-    return this.children.some((c) => {
-      if (c instanceof Signal) {
-        return true;
-      } else if (c instanceof HtmlNode) {
-        return c.has_signal();
-      } else {
-        return false;
-      }
-    });
   }
 
   render_attrs() {
@@ -45,7 +32,6 @@ export class HtmlNode {
 
     for (let child of this.children) {
       if (child instanceof HtmlNode) elem.appendChild(child.render());
-      else if (child instanceof Signal) elem.appendChild(new Text(child.value));
       else elem.appendChild(new Text(child));
     }
     for (let [key, value] of Object.entries(this.attrs || {})) {
@@ -87,11 +73,11 @@ export function h(
 
   return new HtmlNode(name, attrs, event_listeners, children);
 }
+
 export function html() {}
 
 register(HtmlNode, (component: Component, node: HtmlNode) => {
   component.html_node = node.render();
-  component.on_destroy((elem) => node.destroy(elem));
   component.invalidate();
   return component.html_node;
 });

@@ -1,4 +1,4 @@
-import { Component, register } from "./framework.js";
+import { Component, register } from "../framework.js";
 
 class HttpReq {
   url: string;
@@ -8,10 +8,6 @@ class HttpReq {
     this.url = url;
     this.method = method;
     this.body = body;
-  }
-
-  has_signal() {
-    return false;
   }
 }
 
@@ -24,11 +20,8 @@ export default {
   },
 };
 
-let sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
 register(HttpReq, async (_component: Component, req: HttpReq) => {
   if (req.method !== "get") throw new Error("expected http get to be a get");
-  await sleep(1000);
   let data = await fetch(req.url).then((r) => r.json());
   return data;
 });
