@@ -17,16 +17,6 @@ export class HtmlNode {
     this.event_listeners = event_listeners;
   }
 
-  render_attrs() {
-    if (!this.attrs) return "";
-    return (
-      " " +
-      Object.entries(this.attrs || {})
-        .map(([key, value]) => `${key}=${value}`)
-        .join(" ")
-    );
-  }
-
   render(): HTMLElement {
     let elem = document.createElement(this.name);
 
@@ -41,12 +31,6 @@ export class HtmlNode {
       elem.addEventListener(event_name, handler as any);
     }
     return elem;
-  }
-
-  destroy(elem: HTMLElement) {
-    for (let [event_name, handler] of Object.entries(this.event_listeners)) {
-      elem.removeEventListener(event_name, handler as any);
-    }
   }
 }
 
