@@ -3,6 +3,7 @@ import { h } from "./effects/html.js";
 import signal from "./effects/signal.js";
 import http from "./effects/http.js";
 import sleep from "./effects/sleep.js";
+import lock from "./effects/lock.js";
 
 async function* Hello() {
   yield <div>loading...</div>;
@@ -18,17 +19,13 @@ async function* Hello() {
 
   yield sleep.of(1000);
 
-  let $isSurveyFinished = yield signal.of(false);
+  let $surveyLock = yield lock.new();
 
-  for await (let isSurveyFinished of $isSurveyFinished) {
-    if (isSurveyFinished) break;
-
+  for await (let _ of $surveyLock) {
     yield (
       <p>
         click continue to move on
-        <button on:click={() => ($isSurveyFinished.value = true)}>
-          continue
-        </button>
+        <button on:click={() => $surveyLock.unlock()}>continue</button>
       </p>
     );
   }

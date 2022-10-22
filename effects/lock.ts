@@ -1,15 +1,12 @@
 import { Component, register } from "../framework.js";
 
-class Signal<T> {
-  #value;
+class Lock {
+  locked = true;
   #listeners = [];
-  constructor(value: T) {
-    this.#value = value;
-  }
 
   async *[Symbol.asyncIterator]() {
-    yield this.#value;
-    while (true) {
+    yield this.locked;
+    while (this.locked) {
       yield await this.tick();
     }
   }
@@ -17,8 +14,7 @@ class Signal<T> {
   async tick() {
     return new Promise((resolve) =>
       this.on_change(() => {
-        console.log("here");
-        resolve(this.#value);
+        resolve(this.locked);
         return true;
       })
     );
@@ -28,21 +24,18 @@ class Signal<T> {
     this.#listeners.push(fn);
   }
 
-  set value(new_value) {
-    this.#value = new_value;
+  unlock() {
+    this.locked = false;
     this.#listeners = this.#listeners.filter((fn) => !fn());
-  }
-  get value() {
-    return this.#value;
   }
 }
 
-register(Signal, (_component: Component, sig) => {
-  return sig;
+register(Lock, (_component: Component, lock) => {
+  return lock;
 });
 
 export default {
-  of<T>(value: T) {
-    return new Signal(value);
+  new() {
+    return new Lock();
   },
 };
