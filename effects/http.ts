@@ -1,6 +1,6 @@
 import { Component, register } from "../framework.js";
 
-class HttpReq {
+export class HttpReq {
   url: string;
   method: "get" | "post";
   body: any;

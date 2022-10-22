@@ -3,7 +3,7 @@ import { register } from "../framework.js";
 export class HtmlNode {
   name: string;
   attrs: Record<string, string>;
-  children: (HtmlNode | Array<any> | string)[];
+  children: (HtmlNode | Array<any> | AsyncGenerator | string)[];
   event_listeners: Record<string, Function>;
   rendered_html: HTMLElement;
 
@@ -36,6 +36,13 @@ export class HtmlNode {
         for (let c of child) {
           elem.appendChild(await c.render());
         }
+      } else if (child.toString() === "[object AsyncGenerator]") {
+        console.log("trying to render async gne");
+        for await (let val of child) {
+          console.log(val, child);
+          if (val instanceof HtmlNode) elem.appendChild(await val.render());
+          console.log(val, child);
+        }
       } else {
         elem.appendChild(new Text(child));
       }
@@ -57,7 +64,7 @@ function assert(bool, msg) {
 export function h(
   node_type: AsyncGeneratorFunction | string,
   attrs: Record<string, any>,
-  ...children: (HtmlNode | string)[]
+  ...children: (HtmlNode | AsyncGenerator | string)[]
 ): HtmlNode | AsyncGenerator {
   if (node_type instanceof Function) {
     return node_type({ ...attrs, children });

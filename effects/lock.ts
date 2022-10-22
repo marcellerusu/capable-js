@@ -1,10 +1,10 @@
 import { register } from "../framework.js";
 
-class Lock {
+export class Lock {
   locked = true;
   #listeners = [];
 
-  async *[Symbol.asyncIterator]() {
+  async *[Symbol.asyncIterator](): AsyncIterator<any> {
     yield this.locked;
     while (this.locked) {
       yield await this.tick();
@@ -24,7 +24,7 @@ class Lock {
     this.#listeners.push(fn);
   }
 
-  unlock() {
+  release() {
     this.locked = false;
     this.#listeners = this.#listeners.filter((fn) => !fn());
   }

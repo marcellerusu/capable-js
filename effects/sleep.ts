@@ -1,6 +1,6 @@
 import { register } from "../framework.js";
 
-class Sleep {
+export class Sleep {
   ms: number;
   constructor(ms: number) {
     this.ms = ms;
