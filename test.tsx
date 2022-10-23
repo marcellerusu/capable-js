@@ -5,6 +5,7 @@ import sleep from "./effects/sleep.js";
 import lock from "./effects/lock.js";
 import signal from "./effects/signal.js";
 import css from "./effects/css.js";
+import interval from "./effects/interval.js";
 
 async function* LockedButton({ children }) {
   let $lock = yield lock.new();
@@ -24,14 +25,18 @@ async function* LockedButton({ children }) {
 async function* Hello() {
   let name = "";
 
-  let form = yield css.rule`
+  let form_style = yield css.rule`
     color: red;
   `;
+
+  let name_loop = yield interval.each_second(() => {
+    console.log({ name });
+  });
 
   let $name_lock = yield lock.new();
   for await (let _ of $name_lock) {
     yield (
-      <form class={form}>
+      <form class={form_style}>
         What's your name?
         <input type="text" on:input={(e) => (name = e.target.value)} />
         <button type="submit" on:click={() => $name_lock.release()}>
@@ -40,6 +45,8 @@ async function* Hello() {
       </form>
     );
   }
+
+  yield interval.stop(name_loop);
 
   yield <div>Hello, {name}!</div>;
 }

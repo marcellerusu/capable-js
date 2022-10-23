@@ -20,7 +20,7 @@ type ClassOf<T> = { new (...args: any[]): T };
 type Handler<T> = (
   component: Component,
   effect: T
-) => T | Promise<any> | AsyncGenerator | void;
+) => T | Promise<any> | AsyncGenerator | void | any;
 
 let handlers: Map<ClassOf<any>, Handler<any>> = new Map();
 

@@ -28,7 +28,7 @@ register(CssNode, (_component, { style, is_rule }) => {
 });
 
 export default {
-  global(style: string) {
+  global(style) {
     return new CssNode(style);
   },
   rule(style) {
