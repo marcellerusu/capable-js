@@ -16,15 +16,15 @@ export function make(component_fn: () => AsyncGenerator, mount?: HTMLElement) {
   return new Component(component_fn, mount);
 }
 
-type InstanceOf<T> = { new (...args: any[]): T };
+type ClassOf<T> = { new (...args: any[]): T };
 type Handler<T> = (
   component: Component,
   effect: T
-) => T | Promise<any> | AsyncGenerator;
+) => T | Promise<any> | AsyncGenerator | void;
 
-let handlers: Map<InstanceOf<any>, Handler<any>> = new Map();
+let handlers: Map<ClassOf<any>, Handler<any>> = new Map();
 
-export function register<T>(type: InstanceOf<T>, handler: Handler<T>) {
+export function register<T>(type: ClassOf<T>, handler: Handler<T>) {
   handlers.set(type, handler);
 }
 

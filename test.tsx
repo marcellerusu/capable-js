@@ -1,9 +1,10 @@
-import { make, tick } from "./framework.js";
+import { make, register, tick } from "./framework.js";
 import { h } from "./effects/html.js";
 import http from "./effects/http.js";
 import sleep from "./effects/sleep.js";
 import lock from "./effects/lock.js";
 import signal from "./effects/signal.js";
+import css from "./effects/css.js";
 
 async function* LockedButton({ children }) {
   let $lock = yield lock.new();
@@ -20,48 +21,17 @@ async function* LockedButton({ children }) {
   return { data: 10 };
 }
 
-// async function* Hello() {
-//   yield <div>loading...</div>;
-
-//   let { title, completed } = yield http.get(
-//     "https://jsonplaceholder.typicode.com/todos/1"
-//   );
-
-//   yield (
-//     <div>
-//       hey hey
-//       <LockedButton children />
-//     </div>
-//   );
-
-//   yield (
-//     <div>
-//       {title} - {completed}
-//     </div>
-//   );
-
-//   yield sleep.of(1000);
-
-//   let $lock = yield lock.new();
-
-//   for await (let _ of $lock) {
-//     yield (
-//       <p>
-//         click continue to move on
-//         <button on:click={() => $lock.release()}>continue</button>
-//       </p>
-//     );
-//   }
-
-//   yield <div>You finished the survey</div>;
-// }
-
 async function* Hello() {
   let name = "";
+
+  let form = yield css.rule`
+    color: red;
+  `;
+
   let $name_lock = yield lock.new();
   for await (let _ of $name_lock) {
     yield (
-      <form>
+      <form class={form}>
         What's your name?
         <input type="text" on:input={(e) => (name = e.target.value)} />
         <button type="submit" on:click={() => $name_lock.release()}>
