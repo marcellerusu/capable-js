@@ -1,4 +1,4 @@
-import { make, register, tick } from "./framework.js";
+import { make, register, start } from "./framework.js";
 import { h } from "./effects/html.js";
 import http from "./effects/http.js";
 import sleep from "./effects/sleep.js";
@@ -25,19 +25,20 @@ async function* LockedButton({ children }) {
 async function* Hello() {
   let name = "";
 
+  // let name_loop = yield interval.each_second(() => {
+  //   console.log({ name });
+  // });
+
   let form_style = yield css.rule`
     color: red;
   `;
 
-  let name_loop = yield interval.each_second(() => {
-    console.log({ name });
-  });
-
   let $name_lock = yield lock.new();
   for await (let _ of $name_lock) {
     yield (
-      <form class={form_style}>
+      <form on:submit$preventDefault class={form_style}>
         What's your name?
+        <input type="checkbox" on:click$preventDefault />
         <input type="text" on:input={(e) => (name = e.target.value)} />
         <button type="submit" on:click={() => $name_lock.release()}>
           Submit
@@ -46,7 +47,7 @@ async function* Hello() {
     );
   }
 
-  yield interval.stop(name_loop);
+  // yield interval.stop(name_loop);
 
   yield <div>Hello, {name}!</div>;
 }
@@ -54,5 +55,5 @@ async function* Hello() {
 let component = make(Hello, document.getElementById("a"));
 // let component2 = make(Hello, document.getElementById("b"));
 
-tick(component);
-// tick(component2);
+start(component);
+// start(component2);

@@ -73,11 +73,17 @@ export function h(
     for (let [key, value] of Object.entries(attrs || {})) {
       if (key.match(/on:([a-z]+)/)) {
         delete attrs[key];
-        assert(
-          value instanceof Function,
-          "expected event handler to be a function"
-        );
-        event_listeners[key.slice(3)] = value;
+        let rest_of_key = key.slice(3);
+        if (rest_of_key.includes("$")) {
+          let [name, method] = rest_of_key.split("$");
+          event_listeners[name] = (e) => e[method]();
+        } else {
+          assert(
+            value instanceof Function,
+            "expected event handler to be a function"
+          );
+          event_listeners[rest_of_key] = value;
+        }
       }
     }
 

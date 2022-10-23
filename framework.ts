@@ -28,19 +28,18 @@ export function register<T>(type: ClassOf<T>, handler: Handler<T>) {
   handlers.set(type, handler);
 }
 
-export async function tick(component: Component) {
+export async function start(component: Component) {
   let gen = component.fn();
-  let done = false,
-    action = null,
-    last_result = null;
+  let gen_state: IteratorResult<any>;
+  let yield_result = null;
   do {
-    ({ value: action, done } = await gen.next(last_result));
-    if (done) break;
-
-    let handler = handlers.get((action as any).constructor);
-    last_result = await handler?.(component, action);
-    if (!handler)
-      throw new Error("unknown handler " + (action as any).constructor.name);
-  } while (!done);
-  return action;
+    gen_state = await gen.next(yield_result);
+    if (gen_state.done) break;
+    let effect = gen_state.value;
+    if (!handlers.has(effect.constructor))
+      throw new Error("unknown handler " + effect.constructor.name);
+    let effect_handler = handlers.get(effect.constructor);
+    yield_result = await effect_handler(component, effect);
+  } while (!gen_state.done);
+  return gen_state.value;
 }
