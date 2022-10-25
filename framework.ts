@@ -1,14 +1,10 @@
 export class Component {
   fn: () => AsyncGenerator;
-  html_node: HTMLElement;
   mount: HTMLElement;
+  ctx: Record<string, any> = {};
   constructor(fn: () => AsyncGenerator, mount: HTMLElement) {
     this.mount = mount;
     this.fn = fn;
-  }
-
-  invalidate() {
-    this.mount?.replaceChildren(this.html_node);
   }
 }
 

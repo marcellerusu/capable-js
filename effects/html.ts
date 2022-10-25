@@ -3,7 +3,7 @@ import { register } from "../framework.js";
 export class HtmlNode {
   name: string;
   attrs: Record<string, string>;
-  children: (HtmlNode | Array<any> | AsyncGenerator | string)[];
+  children: (HtmlNode | Array<any> | string)[];
   event_listeners: Record<string, Function>;
   rendered_html: HTMLElement;
 
@@ -36,13 +36,6 @@ export class HtmlNode {
         for (let c of child) {
           elem.appendChild(await c.render());
         }
-      } else if (child.toString() === "[object AsyncGenerator]") {
-        console.log("trying to render async gne");
-        for await (let val of child) {
-          console.log(val, child);
-          if (val instanceof HtmlNode) elem.appendChild(await val.render());
-          console.log(val, child);
-        }
       } else {
         elem.appendChild(new Text(child));
       }
@@ -64,7 +57,7 @@ function assert(bool, msg) {
 export function h(
   node_type: AsyncGeneratorFunction | string,
   attrs: Record<string, any>,
-  ...children: (HtmlNode | AsyncGenerator | string)[]
+  ...children: (HtmlNode | string)[]
 ): HtmlNode | AsyncGenerator {
   if (node_type instanceof Function) {
     return node_type({ ...attrs, children });
@@ -91,8 +84,48 @@ export function h(
   }
 }
 
+async function apply_diff(
+  new_node: HtmlNode | any[] | string,
+  old_node: HtmlNode | any[] | string | undefined,
+  elem: Element
+): Promise<Node | null> {
+  if (typeof new_node === "string") return new Text(new_node);
+  if (new_node instanceof Array) throw new Error("wtf a");
+  if (typeof old_node === "string") throw new Error("wtf b");
+  if (old_node instanceof Array) throw new Error("wtf c");
+  if (!old_node) return new_node.render();
+  if (new_node.name !== old_node.name) return new_node.render();
+  for (let [name, value] of Object.entries(new_node.attrs || {})) {
+    if (new_node[name] !== old_node[name]) {
+      elem.setAttribute(name, value);
+    }
+  }
+
+  assert(
+    elem.childNodes.length === new_node.children.length &&
+      new_node.children.length === old_node.children.length,
+    "same length"
+  );
+  for (let i = 0; i < new_node.children.length; i++) {
+    let new_child = await apply_diff(
+      new_node.children[i],
+      old_node.children[i],
+      elem.childNodes[i] as Element
+    );
+    if (new_child) {
+      elem.replaceChild(new_child, elem.childNodes[i]);
+    }
+  }
+}
+
 register(HtmlNode, async (component, node) => {
-  component.html_node = await node.render();
-  component.invalidate();
-  return node;
+  if (!component.ctx.elem) {
+    component.ctx.elem = await node.render();
+    component.mount.replaceChildren(component.ctx.elem);
+  } else {
+    console.log("here");
+    apply_diff(node, component.ctx.old_node, component.ctx.elem);
+  }
+  component.ctx.old_node = node;
+  return component.ctx.elem;
 });
