@@ -2,7 +2,6 @@ import { make, start } from "./framework.js";
 import { h } from "./effects/html.js";
 import lock from "./effects/lock.js";
 import css from "./effects/css.js";
-import signal from "./effects/signal.js";
 
 async function* Hello() {
   let name = "";
@@ -34,15 +33,16 @@ async function* Hello() {
   yield <div>Hello, {name}!</div>;
 }
 async function* NameForm() {
-  let $name = signal.of("");
+  let name = "";
   let $name_lock = yield lock.new();
-  for await (let _ of $name) {
+  for await (let _ of $name_lock) {
+    console.log($name_lock);
     yield (
       <form on:submit$preventDefault>
         What's your name?
-        <input type="text" on:input={(e) => ($name.value = e.target.value)} />
+        <input type="text" on:input={(e) => (name = e.target.value)} />
         <button type="submit" on:click={() => $name_lock.release()}>
-          {$name.value}
+          Submit
         </button>
       </form>
     );
@@ -54,6 +54,7 @@ async function* NameForm() {
 
 async function* Main() {
   let name = yield* <NameForm />;
+  console.log("here");
   yield <div>Hello, {name}!</div>;
 }
 

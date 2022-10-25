@@ -123,8 +123,12 @@ register(HtmlNode, async (component, node) => {
     component.ctx.elem = await node.render();
     component.mount.replaceChildren(component.ctx.elem);
   } else {
-    console.log("here");
-    apply_diff(node, component.ctx.old_node, component.ctx.elem);
+    let new_elem = await apply_diff(
+      node,
+      component.ctx.old_node,
+      component.ctx.elem
+    );
+    if (new_elem) component.mount.replaceChild(new_elem, component.ctx.elem);
   }
   component.ctx.old_node = node;
   return component.ctx.elem;
