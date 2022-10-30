@@ -2,12 +2,18 @@ import * as capable from "../index.js";
 
 class CssNode {
   style: string;
-  is_rule: boolean;
-  constructor(style: string, { is_rule } = { is_rule: false }) {
+  constructor(style: string) {
     this.style = style;
-    this.is_rule = is_rule;
   }
 }
+
+class GlobalCssNode extends CssNode {}
+class NamedCssRule extends CssNode {}
+
+capable.runtime.register(GlobalCssNode, (_component, { style }) => {
+  let css = `* {${style}}`;
+  document.styleSheets[0].insertRule(css);
+});
 
 function gen_class_name() {
   let unique_num = Array.from({ length: 15 }, () => Math.random() * 10)
@@ -16,22 +22,18 @@ function gen_class_name() {
   return `c-${unique_num}`;
 }
 
-capable.runtime.register(CssNode, (_component, { style, is_rule }) => {
-  let clazz = null;
-  if (is_rule) {
-    clazz = gen_class_name();
-    style = `.${clazz} {${style}}`;
-  }
-  let sheet = document.styleSheets[0];
-  sheet.insertRule(style);
+capable.runtime.register(NamedCssRule, (_component, { style }) => {
+  let clazz = gen_class_name();
+  let css = `.${clazz} {${style}}`;
+  document.styleSheets[0].insertRule(css);
   return clazz;
 });
 
 export default {
   global(style) {
-    return new CssNode(style);
+    return new GlobalCssNode(style);
   },
-  rule(style) {
-    return new CssNode(style, { is_rule: true });
+  class(style) {
+    return new NamedCssRule(style);
   },
 };

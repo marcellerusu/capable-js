@@ -3,6 +3,7 @@ import { h } from "./effects/html.js";
 import lock from "./effects/lock.js";
 import css from "./effects/css.js";
 import http from "./effects/http.js";
+import on from "./effects/event_handler.js";
 
 async function* Hello() {
   let name = "";
@@ -11,7 +12,7 @@ async function* Hello() {
   //   console.log({ name });
   // });
 
-  let form_style = yield css.rule`
+  let form_style = yield css.class`
     color: red;
   `;
 
@@ -68,6 +69,32 @@ async function* Main() {
   yield new Log("hello there");
 }
 
-let component = capable.runtime.mount(Main, document.getElementById("a"));
+async function* Form() {
+  let form_style = yield css.class`
+    display: flex;
+    justify-content: space-between;
+    background: lightgray;
+    padding: 1em;
+    border-radius: 5px;
+  `;
+
+  let form = yield (
+    <form class={form_style}>
+      What's your name?
+      <input type="text" name="name" />
+      <button type="submit">Submit</button>
+    </form>
+  );
+
+  let { name } = yield on.submit(form);
+
+  yield css.global`
+    color: hotpink;
+  `;
+
+  yield <div>Hey, {name}!</div>;
+}
+
+let component = capable.runtime.mount(Form, document.getElementById("a"));
 
 capable.runtime.start(component);
