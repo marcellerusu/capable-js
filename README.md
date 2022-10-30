@@ -23,7 +23,7 @@ async function* Hello() {
     </form>
   );
 
-  // `name` pulled straight out of the FormData on "submit"
+  // behind the scenes is Object.fromEntries(new FormData(form_event.target))
   let { name } = yield on.submit(form);
 
   // everything is hotpink after this
