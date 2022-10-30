@@ -1,22 +1,37 @@
+# A simple Front-End runtime built on async generators
+
+A runtime that brings linear (top-to-bottom) reasoning to an async world.
+
 # Hello Example
 
 ```jsx
 async function* Hello() {
-  let name = "";
-  let $name_lock = yield lock.new();
-  for await (let _ of $name_lock) {
-    yield (
-      <form>
-        What's your name?
-        <input type="text" on:input={(e) => (name = e.target.value)} />
-        <button type="submit" on:click={() => $name_lock.release()}>
-          Submit
-        </button>
-      </form>
-    );
-  }
+  let form_style = yield css.class`
+    display: flex;
+    justify-content: space-between;
+    background: lightgray;
+    padding: 1em;
+    border-radius: 5px;
+  `;
 
-  yield <div>Hello, {name}!</div>;
+  // yield jsx, store the HTMLFormElement object
+  let form = yield (
+    <form class={form_style}>
+      What's your name?
+      <input type="text" name="name" />
+      <button type="submit">Submit</button>
+    </form>
+  );
+
+  // `name` pulled straight out of the FormData on "submit"
+  let { name } = yield on.submit(form);
+
+  // everything is hotpink after this
+  yield css.global`
+    color: hotpink;
+  `;
+
+  yield <div>Hey, {name}!</div>;
 }
 ```
 
