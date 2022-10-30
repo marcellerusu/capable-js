@@ -13,7 +13,8 @@ async function* Hello() {
     padding: 1em;
     border-radius: 5px;
   `;
-
+  
+  // first render
   let form = yield (
     <form class={form_style}>
       What's your name?
@@ -28,9 +29,20 @@ async function* Hello() {
     color: hotpink;
   `;
 
+  // second render
   yield <div>Hey, {name}!</div>;
 }
 ```
+
+- First Render
+<img width="581" alt="Screen Shot 2022-10-30 at 10 22 33 AM" src="https://user-images.githubusercontent.com/7607387/198886750-b69e8623-aea9-4523-9c4b-7b6e9da99237.png">
+
+- User Input
+<img width="585" alt="Screen Shot 2022-10-30 at 10 23 15 AM" src="https://user-images.githubusercontent.com/7607387/198886783-92c9fcee-acda-4a31-ae75-75cfa285f2c6.png">
+
+- Second Render
+<img width="216" alt="Screen Shot 2022-10-30 at 10 23 37 AM" src="https://user-images.githubusercontent.com/7607387/198886793-6db9454d-ac70-4492-8dc0-6a73a7a7d586.png">
+
 
 ## Equivalent React Code
 
