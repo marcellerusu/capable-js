@@ -1,4 +1,4 @@
-import { register } from "../framework.js";
+import * as capable from "../index.js";
 
 class CssNode {
   style: string;
@@ -16,7 +16,7 @@ function gen_class_name() {
   return `c-${unique_num}`;
 }
 
-register(CssNode, (_component, { style, is_rule }) => {
+capable.runtime.register(CssNode, (_component, { style, is_rule }) => {
   let clazz = null;
   if (is_rule) {
     clazz = gen_class_name();

@@ -1,4 +1,4 @@
-import { register } from "../framework.js";
+import * as capable from "../index.js";
 
 export class HtmlNode {
   name: string;
@@ -118,7 +118,7 @@ async function apply_diff(
   }
 }
 
-register(HtmlNode, async (component, node) => {
+capable.runtime.register(HtmlNode, async (component, node) => {
   if (!component.ctx.elem) {
     component.ctx.elem = await node.render();
     component.mount.replaceChildren(component.ctx.elem);

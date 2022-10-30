@@ -1,4 +1,4 @@
-import { register } from "../framework.js";
+import * as capable from "../index.js";
 
 export class Sleep {
   ms: number;
@@ -9,7 +9,7 @@ export class Sleep {
 
 let sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-register(Sleep, (_component, { ms }) => sleep(ms));
+capable.runtime.register(Sleep, (_component, { ms }) => sleep(ms));
 
 export default {
   of(ms: number) {

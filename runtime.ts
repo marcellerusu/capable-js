@@ -8,7 +8,7 @@ export class Component {
   }
 }
 
-export function make(component_fn: () => AsyncGenerator, mount?: HTMLElement) {
+export function mount(component_fn: () => AsyncGenerator, mount?: HTMLElement) {
   return new Component(component_fn, mount);
 }
 

@@ -1,7 +1,8 @@
-import { make, start } from "./framework.js";
+import * as capable from "./index.js";
 import { h } from "./effects/html.js";
 import lock from "./effects/lock.js";
 import css from "./effects/css.js";
+import http from "./effects/http.js";
 
 async function* Hello() {
   let name = "";
@@ -32,6 +33,7 @@ async function* Hello() {
 
   yield <div>Hello, {name}!</div>;
 }
+
 async function* NameForm() {
   let name = "";
   let $name_lock = yield lock.new();
@@ -47,19 +49,25 @@ async function* NameForm() {
       </form>
     );
   }
-
   // note this is a return, not a yield
   return name;
 }
 
-async function* Main() {
-  let name = yield* <NameForm />;
-  console.log("here");
-  yield <div>Hello, {name}!</div>;
+class Log {
+  msg: string;
+  constructor(msg: string) {
+    this.msg = msg;
+  }
 }
 
-let component = make(Main, document.getElementById("a"));
-// let component2 = make(Hello, document.getElementById("b"));
+capable.runtime.register(Log, (_component, log_cmd) => {
+  console.log(log_cmd.msg);
+});
 
-start(component);
-// start(component2);
+async function* Main() {
+  yield new Log("hello there");
+}
+
+let component = capable.runtime.mount(Main, document.getElementById("a"));
+
+capable.runtime.start(component);

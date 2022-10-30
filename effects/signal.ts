@@ -1,4 +1,4 @@
-import { Component, register } from "../framework.js";
+import * as capable from "../index.js";
 
 class Signal<T> {
   #value: T;
@@ -38,9 +38,7 @@ class Signal<T> {
   }
 }
 
-register(Signal, (_component: Component, sig) => {
-  return sig;
-});
+capable.runtime.register(Signal, (_component, sig) => sig);
 
 export default {
   of<T>(value: T) {

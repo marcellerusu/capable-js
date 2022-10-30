@@ -1,4 +1,4 @@
-import { register } from "../framework.js";
+import * as capable from "../index.js";
 
 class StartInterval {
   delay: number;
@@ -16,11 +16,11 @@ class StopInterval {
   }
 }
 
-register(StartInterval, (_component, { delay, fn }) => {
+capable.runtime.register(StartInterval, (_component, { delay, fn }) => {
   return setInterval(fn, delay);
 });
 
-register(StopInterval, (_component, { id }) => {
+capable.runtime.register(StopInterval, (_component, { id }) => {
   clearInterval(id);
 });
 

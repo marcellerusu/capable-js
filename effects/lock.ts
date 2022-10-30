@@ -1,4 +1,4 @@
-import { register } from "../framework.js";
+import * as capable from "../index.js";
 
 export class Lock {
   locked = true;
@@ -30,9 +30,7 @@ export class Lock {
   }
 }
 
-register(Lock, (_component, lock) => {
-  return lock;
-});
+capable.runtime.register(Lock, (_component, lock) => lock);
 
 export default {
   new() {

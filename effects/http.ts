@@ -1,4 +1,4 @@
-import { Component, register } from "../framework.js";
+import * as capable from "../index.js";
 
 export class HttpReq {
   url: string;
@@ -20,7 +20,7 @@ export default {
   },
 };
 
-register(HttpReq, async (_component: Component, req: HttpReq) => {
+capable.runtime.register(HttpReq, async (_component, req) => {
   if (req.method !== "get") throw new Error("expected http get to be a get");
   let data = await fetch(req.url).then((r) => r.json());
   return data;
