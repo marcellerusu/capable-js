@@ -6,6 +6,8 @@ A runtime that brings linear (top-to-bottom) reasoning to an async world.
 
 ```jsx
 async function* Hello() {
+  // css effects are inspired by emotion/styled-components
+  // returns a class name
   let form_style = yield css.class`
     display: flex;
     justify-content: space-between;
