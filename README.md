@@ -6,8 +6,6 @@ A runtime that brings linear (top-to-bottom) reasoning to an async world.
 
 ```jsx
 async function* Hello() {
-  // css effects are inspired by emotion/styled-components
-  // returns a class name
   let form_style = yield css.class`
     display: flex;
     justify-content: space-between;
@@ -16,7 +14,6 @@ async function* Hello() {
     border-radius: 5px;
   `;
 
-  // yield jsx, store the HTMLFormElement object
   let form = yield (
     <form class={form_style}>
       What's your name?
@@ -25,10 +22,8 @@ async function* Hello() {
     </form>
   );
 
-  // behind the scenes is Object.fromEntries(new FormData(form_event.target))
   let { name } = yield on.submit(form);
 
-  // everything is hotpink after this
   yield css.global`
     color: hotpink;
   `;
