@@ -2,7 +2,8 @@ import * as capable from "./index.js";
 import * as html from "./effects/html.js";
 import css from "./effects/css.js";
 import form_utils, { FormSubmission } from "./effects/form_utils.js";
-import http, { HttpReq } from "./effects/http.js";
+import http, { HTTPJsonRequest } from "./effects/http.js";
+import sleep from "./effects/sleep.js";
 
 async function* Form() {
   let form_style = yield css.class`
@@ -23,7 +24,12 @@ async function* Form() {
 
   let { name } = yield form_utils.on_submit(form);
 
-  yield http.post("/api", { name });
+  try {
+    yield http.post("/api", { name });
+  } catch {
+    yield <div>error uploading</div>;
+    yield sleep.of(1000);
+  }
 
   yield css.global`
     color: hotpink;
@@ -35,7 +41,7 @@ async function* Form() {
 async function it_should_post_name() {
   let component = capable.runtime.mount(Form, null);
   // ignore these effects (just store the effects, don't execute)
-  capable.runtime.ignore(html.HtmlNode, HttpReq);
+  capable.runtime.ignore(html.HtmlNode, HTTPJsonRequest);
   // mock FormSubmission effect to return this form data
   capable.runtime.mock_with_value(FormSubmission, { name: "Marcelle" });
   // run the component
@@ -47,8 +53,8 @@ async function it_should_post_name() {
   else console.error("test failed");
 }
 
-it_should_post_name();
+// it_should_post_name();
 
-// let component = capable.runtime.mount(Form, document.getElementById("a"));
+let component = capable.runtime.mount(Form, document.getElementById("a"));
 
-// capable.runtime.start(component);
+capable.runtime.run(component);

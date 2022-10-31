@@ -162,31 +162,27 @@ async function apply_diff(
   }
 }
 
-capable.runtime.register(HtmlNode, async (component, node) => {
-  if (!component.ctx.elem) {
-    component.ctx.elem = await node.render();
-    component.mount.replaceChildren(component.ctx.elem);
-  } else {
-    let new_elem = await apply_diff(
-      node,
-      component.ctx.old_node,
-      component.ctx.elem
-    );
-    if (new_elem) component.mount.replaceChild(new_elem, component.ctx.elem);
+capable.runtime.register(
+  HtmlNode,
+  async function render(component, node, skip_diff = false) {
+    if (!component.ctx.elem || skip_diff) {
+      component.ctx.elem = await node.render();
+      component.mount.replaceChildren(component.ctx.elem);
+    } else {
+      try {
+        let new_elem = await apply_diff(
+          node,
+          component.ctx.old_node,
+          component.ctx.elem
+        );
+        if (new_elem)
+          component.mount.replaceChild(new_elem, component.ctx.elem);
+      } catch {
+        console.warn("dom diffing failed :(");
+        return render(component, node, true);
+      }
+    }
+    component.ctx.old_node = node;
+    return component.ctx.elem;
   }
-  component.ctx.old_node = node;
-  return component.ctx.elem;
-});
-
-class ShouldRender {
-  html: HtmlNode;
-  constructor(html: HtmlNode) {
-    this.html = html;
-  }
-}
-
-export let test = {
-  should_render(node: HtmlNode) {
-    return new ShouldRender(html);
-  },
-};
+);

@@ -1,35 +1,46 @@
 import * as capable from "../index.js";
 
-export class HttpReq {
+type JSONBody =
+  | string
+  | number
+  | Array<JSONBody>
+  | Record<string, number | string | Array<JSONBody>>;
+
+type Options = Omit<RequestInit, "body"> & { body?: JSONBody };
+
+export class HTTPJsonRequest {
   url: string;
-  method: "get" | "post";
-  body: any;
-  constructor(url: string, method: "get" | "post", body: any = null) {
+  options: Options;
+  constructor(url: string, options: Options) {
     this.url = url;
-    this.method = method;
-    this.body = body;
+    this.options = options;
   }
 
-  [capable.runtime.EffectEquals](other: HttpReq) {
+  [capable.runtime.EffectEquals](other: HTTPJsonRequest) {
     return (
-      this.url === other.url &&
-      this.method === other.method &&
-      capable.deep_eq(this.body, other.body)
+      this.url === other.url && capable.deep_eq(this.options, other.options)
     );
   }
 }
 
 export default {
   get(url: string) {
-    return new HttpReq(url, "get");
+    return new HTTPJsonRequest(url, { method: "GET" });
   },
-  post<T>(url: string, body: T) {
-    return new HttpReq(url, "post", body);
+  post<T extends JSONBody>(url: string, body: T) {
+    return new HTTPJsonRequest(url, { method: "POST", body });
   },
 };
 
-capable.runtime.register(HttpReq, async (_component, req) => {
-  if (req.method !== "get") throw new Error("expected http get to be a get");
-  let data = await fetch(req.url).then((r) => r.json());
+capable.runtime.register(HTTPJsonRequest, async (_component, req) => {
+  let data = await fetch(req.url, {
+    ...req.options,
+    headers: {
+      ...(req.options.headers || {}),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(req.options.body || {}),
+  }).then((r) => r.json());
+
   return data;
 });

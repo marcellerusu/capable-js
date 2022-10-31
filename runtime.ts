@@ -69,6 +69,7 @@ class Effects extends Array {
   }
 }
 
+// this should be the main function from now on..
 export async function run(component: Component): Promise<[Effects, any]> {
   let gen = component.fn();
   let gen_state: IteratorResult<any>;
@@ -82,7 +83,14 @@ export async function run(component: Component): Promise<[Effects, any]> {
     if (!handlers.has(effect.constructor))
       throw new Error("unknown handler " + effect.constructor.name);
     let effect_handler = handlers.get(effect.constructor);
-    yield_result = await effect_handler(component, effect);
+    try {
+      yield_result = await effect_handler(component, effect);
+    } catch (error) {
+      gen_state = await gen.throw(error);
+      let effect = gen_state.value;
+      let effect_handler = handlers.get(effect.constructor);
+      yield_result = await effect_handler(component, effect);
+    }
   } while (!gen_state.done);
   return [effects, gen_state.value];
 }
