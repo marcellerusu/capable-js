@@ -7,12 +7,20 @@ class StartInterval {
     this.fn = fn;
     this.delay = delay;
   }
+
+  [capable.runtime.EffectEquals](other: StartInterval) {
+    return this.delay === other.delay;
+  }
 }
 
 class StopInterval {
   id: number;
   constructor(id: number) {
     this.id = id;
+  }
+
+  [capable.runtime.EffectEquals](other: StopInterval) {
+    return this.id === other.id;
   }
 }
 

@@ -9,6 +9,14 @@ export class HttpReq {
     this.method = method;
     this.body = body;
   }
+
+  [capable.runtime.EffectEquals](other: HttpReq) {
+    return (
+      this.url === other.url &&
+      this.method === other.method &&
+      capable.deep_eq(this.body, other.body)
+    );
+  }
 }
 
 export default {

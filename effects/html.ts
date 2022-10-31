@@ -1,5 +1,11 @@
 import * as capable from "../index.js";
 
+export class Fragment {}
+
+function lengths_mismatch(obj1, obj2) {
+  return Object.keys(obj1).length !== Object.keys(obj2).length;
+}
+
 export class HtmlNode {
   name: string;
   attrs: Record<string, string>;
@@ -48,13 +54,47 @@ export class HtmlNode {
     }
     return elem;
   }
+
+  [capable.runtime.EffectEquals](other: HtmlNode) {
+    if (this === other) return true;
+    if (this.name === other.name) return false;
+    if (!this.attrs || !other.attrs) return this.attrs === other.attrs;
+    if (lengths_mismatch(this.attrs, other.attrs)) return false;
+    if (
+      Object.entries(this.attrs).some(
+        ([key, value]) => value !== other.attrs[key]
+      )
+    )
+      return false;
+
+    if (!this.event_listeners || !other.event_listeners)
+      return this.event_listeners === other.event_listeners;
+
+    if (lengths_mismatch(this.event_listeners, other.event_listeners))
+      return false;
+
+    // only check they both have same event listeners names
+    // no function equality
+    if (
+      Object.keys(this.event_listeners).some(
+        (key) => !other.event_listeners[key]
+      )
+    )
+      return false;
+
+    if (lengths_mismatch(this.children, other.children)) return false;
+
+    return this.children.every((node, i) =>
+      node[capable.runtime.EffectEquals](other.children[i])
+    );
+  }
 }
 
 function assert(bool, msg) {
   if (!bool) throw new Error(msg);
 }
 
-export function h(
+export function node(
   node_type: AsyncGeneratorFunction | string,
   attrs: Record<string, any>,
   ...children: (HtmlNode | string)[]
@@ -82,6 +122,10 @@ export function h(
 
     return new HtmlNode(node_type, attrs, event_listeners, children);
   }
+}
+
+export function fragment() {
+  return new Fragment();
 }
 
 async function apply_diff(
@@ -133,3 +177,16 @@ capable.runtime.register(HtmlNode, async (component, node) => {
   component.ctx.old_node = node;
   return component.ctx.elem;
 });
+
+class ShouldRender {
+  html: HtmlNode;
+  constructor(html: HtmlNode) {
+    this.html = html;
+  }
+}
+
+export let test = {
+  should_render(node: HtmlNode) {
+    return new ShouldRender(html);
+  },
+};

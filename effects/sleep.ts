@@ -5,6 +5,10 @@ export class Sleep {
   constructor(ms: number) {
     this.ms = ms;
   }
+
+  [capable.runtime.EffectEquals](other: Sleep) {
+    return this.ms === other.ms;
+  }
 }
 
 let sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

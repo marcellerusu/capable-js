@@ -5,6 +5,10 @@ class CssNode {
   constructor(style: string) {
     this.style = style;
   }
+
+  [capable.runtime.EffectEquals](other: GlobalCssNode) {
+    return this.constructor === other.constructor && this.style === other.style;
+  }
 }
 
 class GlobalCssNode extends CssNode {}

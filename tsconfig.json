@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "jsx": "react",
-    "jsxFactory": "h",
+    "jsxFactory": "html.node",
+    "jsxFragmentFactory": "html.fragment",
     //aka.ms/tsconfig.json to read more about this file */
 
     /* Basic Options */

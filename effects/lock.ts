@@ -11,6 +11,10 @@ export class Lock {
     }
   }
 
+  [capable.runtime.EffectEquals](other: Lock) {
+    return this.locked === other.locked;
+  }
+
   async tick() {
     return new Promise((resolve) =>
       this.#on_change(() => {

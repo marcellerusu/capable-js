@@ -36,6 +36,10 @@ class Signal<T> {
   get value() {
     return this.#value;
   }
+
+  [capable.runtime.EffectEquals](other: Signal<T>) {
+    return capable.deep_eq(this.value, other.value);
+  }
 }
 
 capable.runtime.register(Signal, (_component, sig) => sig);

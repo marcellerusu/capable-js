@@ -1,8 +1,11 @@
 import * as capable from "../index.js";
-class FormSubmission {
+export class FormSubmission {
   form: HTMLFormElement;
   constructor(target: HTMLFormElement) {
     this.form = target;
+  }
+  [capable.runtime.EffectEquals](other: FormSubmission) {
+    return this.form === other.form;
   }
 }
 
