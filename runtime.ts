@@ -79,7 +79,6 @@ export async function run(component: Component): Promise<[Effects, any]> {
     gen_state = await gen.next(yield_result);
     if (gen_state.done) break;
     let effect = gen_state.value;
-    effects.push(effect);
     if (!handlers.has(effect.constructor))
       throw new Error("unknown handler " + effect.constructor.name);
     let effect_handler = handlers.get(effect.constructor);
@@ -91,6 +90,7 @@ export async function run(component: Component): Promise<[Effects, any]> {
       let effect_handler = handlers.get(effect.constructor);
       yield_result = await effect_handler(component, effect);
     }
+    effects.push(yield_result);
   } while (!gen_state.done);
   return [effects, gen_state.value];
 }

@@ -6,10 +6,14 @@ function lengths_mismatch(obj1, obj2) {
   return Object.keys(obj1).length !== Object.keys(obj2).length;
 }
 
+type HtmlNodeChild = HtmlNode | Array<any> | string | (() => AsyncGenerator);
+
+const GeneratorFunction = function* () {}.constructor;
+
 export class HtmlNode {
   name: string;
   attrs: Record<string, string>;
-  children: (HtmlNode | Array<any> | string)[];
+  children: HtmlNodeChild[];
   event_listeners: Record<string, Function>;
   rendered_html: HTMLElement;
 
@@ -23,7 +27,7 @@ export class HtmlNode {
     name: string,
     attrs: Record<string, string>,
     event_listeners: Record<string, Function>,
-    children: (HtmlNode | Array<any> | string)[]
+    children: HtmlNodeChild[]
   ) {
     this.name = name;
     this.attrs = attrs;
@@ -40,8 +44,18 @@ export class HtmlNode {
         elem.appendChild(await child.render());
       } else if (child instanceof Array) {
         for (let c of child) {
-          elem.appendChild(await c.render());
+          if (typeof c === "string") {
+            elem.appendChild(new Text(c));
+          } else if (c instanceof HtmlNode) {
+            elem.appendChild(await c.render());
+          } else if (c?.constructor?.constructor === GeneratorFunction) {
+            let component = capable.runtime.mount(() => c, elem);
+            capable.runtime.run(component);
+          }
         }
+      } else if (typeof child === "function") {
+        let component = capable.runtime.mount(child, elem);
+        capable.runtime.run(component);
       } else {
         elem.appendChild(new Text(child));
       }
