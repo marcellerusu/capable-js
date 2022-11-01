@@ -2,16 +2,26 @@ export class Component {
   fn: () => AsyncGenerator;
   mount: HTMLElement;
   ctx: Record<string, any> = {};
-  constructor(fn: () => AsyncGenerator, mount: HTMLElement) {
+  index_in_parent: number;
+  constructor(
+    fn: () => AsyncGenerator,
+    mount: HTMLElement,
+    index_in_parent: number = 0
+  ) {
     this.mount = mount;
     this.fn = fn;
+    this.index_in_parent = index_in_parent;
   }
 }
 
 export let EffectEquals = Symbol("effect-equals");
 
-export function mount(component_fn: () => AsyncGenerator, mount?: HTMLElement) {
-  return new Component(component_fn, mount);
+export function mount(
+  component_fn: () => AsyncGenerator,
+  mount?: HTMLElement,
+  index = 0
+) {
+  return new Component(component_fn, mount, index);
 }
 
 export function test_mount(component_fn: () => AsyncGenerator) {

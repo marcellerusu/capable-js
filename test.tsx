@@ -6,14 +6,15 @@ import { on } from "./effects/events.js";
 async function* Main() {
   yield* (
     <Accordion children>
+      {/* this isn't rendering :( */}
       <AccordionItem title="Hey" children>
         yo
       </AccordionItem>
+      <AccordionItem title="Buddy" children>
+        so
+      </AccordionItem>
     </Accordion>
   );
-
-  yield on.opened(window);
-  yield <div>done</div>;
 }
 
 let component = capable.runtime.mount(Main, document.getElementById("a"));

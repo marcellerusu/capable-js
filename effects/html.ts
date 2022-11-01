@@ -5,10 +5,9 @@ export class Fragment {}
 function lengths_mismatch(obj1, obj2) {
   return Object.keys(obj1).length !== Object.keys(obj2).length;
 }
+const GeneratorFunction = function* () {}.constructor;
 
 type HtmlNodeChild = HtmlNode | Array<any> | string | (() => AsyncGenerator);
-
-const GeneratorFunction = function* () {}.constructor;
 
 export class HtmlNode {
   name: string;
@@ -16,12 +15,6 @@ export class HtmlNode {
   children: HtmlNodeChild[];
   event_listeners: Record<string, Function>;
   rendered_html: HTMLElement;
-
-  static fromHtml(html: HTMLElement) {
-    let result = new this(null, {}, {}, []);
-    result.rendered_html = html;
-    return result;
-  }
 
   constructor(
     name: string,
@@ -39,6 +32,7 @@ export class HtmlNode {
     if (this.rendered_html) return this.rendered_html;
     let elem = document.createElement(this.name);
 
+    let idx = 0;
     for (let child of this.children) {
       if (child instanceof HtmlNode) {
         elem.appendChild(await child.render());
@@ -49,16 +43,25 @@ export class HtmlNode {
           } else if (c instanceof HtmlNode) {
             elem.appendChild(await c.render());
           } else if (c?.constructor?.constructor === GeneratorFunction) {
-            let component = capable.runtime.mount(() => c, elem);
+            let component = capable.runtime.mount(() => c, elem, idx);
             capable.runtime.run(component);
           }
+          idx++;
         }
-      } else if (typeof child === "function") {
-        let component = capable.runtime.mount(child, elem);
+      } else if (child?.constructor?.constructor === GeneratorFunction) {
+        // TODO: components should know the index of child so that it can
+        // rerender
+
+        let component = capable.runtime.mount(
+          () => child as unknown as AsyncGenerator,
+          elem,
+          idx
+        );
         capable.runtime.run(component);
       } else {
-        elem.appendChild(new Text(child));
+        elem.appendChild(new Text(child as string));
       }
+      idx++;
     }
     for (let [key, value] of Object.entries(this.attrs || {})) {
       elem.setAttribute(key, value);
@@ -179,24 +182,25 @@ async function apply_diff(
 capable.runtime.register(
   HtmlNode,
   async function render(component, node, skip_diff = false) {
-    if (!component.ctx.elem || skip_diff) {
-      component.ctx.elem = await node.render();
-      component.mount.replaceChildren(component.ctx.elem);
+    let old_elem = component.mount.children[component.index_in_parent];
+    let elem: HTMLElement;
+    if (skip_diff) {
+      elem = await node.render();
+      component.mount.replaceChild(elem, old_elem);
+    } else if (!old_elem) {
+      elem = await node.render();
+      component.mount.appendChild(elem);
     } else {
+      if (component.index_in_parent !== 0) throw "wtf idk how to handle this";
       try {
-        let new_elem = await apply_diff(
-          node,
-          component.ctx.old_node,
-          component.ctx.elem
-        );
-        if (new_elem)
-          component.mount.replaceChild(new_elem, component.ctx.elem);
+        let new_elem = await apply_diff(node, component.ctx.old_node, old_elem);
+        if (new_elem) component.mount.replaceChild(new_elem, old_elem);
       } catch {
         console.warn("dom diffing failed :(");
         return render(component, node, true);
       }
     }
     component.ctx.old_node = node;
-    return component.ctx.elem;
+    return elem;
   }
 );
