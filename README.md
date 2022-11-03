@@ -5,7 +5,7 @@ A runtime that brings linear (top-to-bottom) reasoning to an async world.
 # Hello Example
 
 ```jsx
-async function* Hello() {
+async function* Main() {
   let form_style = yield css.class`
     display: flex;
     justify-content: space-between;
@@ -23,7 +23,7 @@ async function* Hello() {
     </form>
   );
 
-  let { name } = yield on.submit(form);
+  let { name } = yield form_utils.on_submit(form);
 
   yield css.global`
     color: hotpink;
@@ -46,29 +46,42 @@ async function* Hello() {
 ## Equivalent React Code
 
 ```jsx
+// pick your css framework
+let Form = styled.form`
+  display: flex;
+  justify-content: space-between;
+  background: lightgray;
+  padding: 1em;
+  border-radius: 5px;
+`;
+
 function Hello() {
-  let [name, setName] = useState("");
+  // setting up variables that aren't being used in the first
+  // stage of rendering
+  let [{ name }, setFormData] = useState({});
   let [isSubmitted, setIsSubmitted] = useState(false);
 
-  if (!isSubmitted) {
+  function handleSubmit(e) {
+    setFormData(Object.fromEntries(e.formData));
+  }
+
+  if (isSubmitted) {
+    return <div>Hello, {name}!</div>;
+  } else {
     return (
-      <form>
+      <form class={form_style} onFormData={handleSubmit}>
         What's your name?
-        <input type="text" onChange={(e) => setName(e.target.value)} />
-        <button type="submit" on:click={() => setIsSubmitted(true)}>
-          Submit
-        </button>
+        <input type="text" name="name" />
+        <button type="submit">Submit</button>
       </form>
     );
-  } else {
-    return <div>Hello, {name}!</div>;
   }
 }
 ```
 
-The important distinction isn't that our new code is shorter, but rather that our code flows from top to bottom.
+The important distinction isn't that our new code is shorter (though it is), but rather that our code flows from top to bottom.
 
-In react, the structure of the code has nothing to say if we'll see the form first or the hello name first.
+In react, the structure of the code has nothing to say we'll see the form first or the hello name first.
 
 Its imbued in the logic.
 
