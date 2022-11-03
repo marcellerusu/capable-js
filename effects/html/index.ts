@@ -1,6 +1,6 @@
 import * as capable from "../../index.js";
 import { assert } from "../../utils/assert.js";
-import { DiffKind, diff_html_node } from "./diff.js";
+import { diff_html_node } from "./diff.js";
 import { render_html_node } from "./render.js";
 import { HtmlNode } from "./HtmlNode.js";
 
@@ -23,16 +23,14 @@ capable.runtime.register(
           component.ctx.old_node,
           old_elem
         );
-        switch (result.kind) {
-          case DiffKind.InPlace:
-            break;
-          case DiffKind.ReplaceElem:
-            component.mount.replaceChild(result.elem, old_elem);
-            break;
-          case DiffKind.ReplaceText:
+        result.match({
+          ReplaceElem({ elem }) {
+            component.mount.replaceChild(elem, old_elem);
+          },
+          ReplaceText() {
             assert(false, "Can't replace text at root");
-            break;
-        }
+          },
+        });
       } catch (error) {
         console.warn("dom diffing failed :(", error);
         throw error;

@@ -2,27 +2,24 @@ import { assert } from "../../utils/assert.js";
 import { is_async_generator, is_generator } from "../../utils/generators.js";
 import { render_html_node } from "./render.js";
 import { HtmlNode, HtmlNodeChild } from "./HtmlNode.js";
+import { Result } from "../../utils/result.js";
 
-export enum DiffKind {
-  InPlace,
-  ReplaceText,
-  ReplaceElem,
-}
+type DiffKinds = {
+  InPlace: {};
+  ReplaceText: { text_node: Text };
+  ReplaceElem: { elem: HTMLElement };
+};
+
+export let InPlace = new Result<DiffKinds>("InPlace", {});
+export let ReplaceText = (text_node: Text) =>
+  new Result<DiffKinds>("ReplaceText", { text_node });
+export let ReplaceElem = (elem: HTMLElement) =>
+  new Result<DiffKinds>("ReplaceElem", { elem });
 
 type DiffResult =
-  | { kind: DiffKind.InPlace }
-  | { kind: DiffKind.ReplaceText; text_node: Text }
-  | { kind: DiffKind.ReplaceElem; elem: HTMLElement };
-
-const InPlace: DiffResult = { kind: DiffKind.InPlace };
-
-function ReplaceText(text_node: Text): DiffResult {
-  return { kind: DiffKind.ReplaceText, text_node };
-}
-
-function ReplaceElem(elem: HTMLElement): DiffResult {
-  return { kind: DiffKind.ReplaceElem, elem };
-}
+  | typeof InPlace
+  | ReturnType<typeof ReplaceText>
+  | ReturnType<typeof ReplaceElem>;
 
 function zip3<A, B, C>(
   array1: A[],
@@ -78,18 +75,15 @@ async function diff_children(
     elem_children
   )) {
     let result = await diff_child(new_node, old_node, elem);
-
-    switch (result.kind) {
-      case DiffKind.InPlace:
-        break;
-      case DiffKind.ReplaceText:
-        assert(elem instanceof Text, "replace text only works on #text");
-        elem.nodeValue = result.text_node.nodeValue;
-        break;
-      case DiffKind.ReplaceElem:
-        elem.replaceChild(result.elem, elem);
-        break;
-    }
+    result.match({
+      InPlace() {},
+      ReplaceText({ text_node }) {
+        elem.nodeValue = text_node.nodeValue;
+      },
+      ReplaceElem({ elem }) {
+        elem.replaceChild(elem, elem);
+      },
+    });
   }
 }
 
