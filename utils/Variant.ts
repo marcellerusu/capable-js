@@ -9,7 +9,3 @@ export class Variant<Kinds extends Record<string, any>> {
     return match_obj[this.kind](this.data);
   }
 }
-
-export type ResultOf<T extends Record<string, any>> = {
-  [key in keyof T]: Variant<T>;
-}[keyof T];

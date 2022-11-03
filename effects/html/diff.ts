@@ -3,14 +3,12 @@ import { is_async_generator, is_generator } from "../../utils/generators.js";
 import { render_html_node } from "./render.js";
 import { HtmlNode, HtmlNodeChild } from "./HtmlNode.js";
 import { Variant } from "../../utils/Variant.js";
-import type { ResultOf } from "../../utils/Variant";
 
 type DiffKinds = {
   InPlace: {};
   ReplaceText: { text_node: Text };
   ReplaceElem: { elem: HTMLElement };
 };
-type DiffResult = ResultOf<DiffKinds>;
 
 export let InPlace = new Variant<DiffKinds>("InPlace", {});
 export let ReplaceText = (text_node: Text) =>
@@ -37,7 +35,7 @@ async function diff_child(
   new_node: HtmlNodeChild,
   old_node: HtmlNodeChild,
   elem: ChildNode
-): Promise<DiffResult> {
+): Promise<Variant<DiffKinds>> {
   if (typeof new_node === "string") {
     assert(elem instanceof Text, "old elem should be a text node");
     return ReplaceText(new Text(new_node));
@@ -88,7 +86,7 @@ export async function diff_html_node(
   new_node: HtmlNode,
   old_node: HtmlNode | undefined,
   elem: HTMLElement
-): Promise<DiffResult> {
+): Promise<Variant<DiffKinds>> {
   if (!old_node) return ReplaceElem(await render_html_node(new_node));
   if (new_node.name !== old_node.name)
     return ReplaceElem(await render_html_node(new_node));
