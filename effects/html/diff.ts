@@ -3,23 +3,20 @@ import { is_async_generator, is_generator } from "../../utils/generators.js";
 import { render_html_node } from "./render.js";
 import { HtmlNode, HtmlNodeChild } from "./HtmlNode.js";
 import { Variant } from "../../utils/Variant.js";
+import type { ResultOf } from "../../utils/Variant";
 
 type DiffKinds = {
   InPlace: {};
   ReplaceText: { text_node: Text };
   ReplaceElem: { elem: HTMLElement };
 };
+type DiffResult = ResultOf<DiffKinds>;
 
 export let InPlace = new Variant<DiffKinds>("InPlace", {});
 export let ReplaceText = (text_node: Text) =>
   new Variant<DiffKinds>("ReplaceText", { text_node });
 export let ReplaceElem = (elem: HTMLElement) =>
   new Variant<DiffKinds>("ReplaceElem", { elem });
-
-type DiffResult =
-  | typeof InPlace
-  | ReturnType<typeof ReplaceText>
-  | ReturnType<typeof ReplaceElem>;
 
 function zip3<A, B, C>(
   array1: A[],
