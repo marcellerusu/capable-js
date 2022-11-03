@@ -1,6 +1,6 @@
 import * as capable from "../index.js";
 
-class Signal<T> {
+export class Signal<T> {
   #value: T;
   #listeners = [];
   constructor(value: T) {

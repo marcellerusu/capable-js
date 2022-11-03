@@ -1,5 +1,6 @@
 import css from "../effects/css.js";
-import * as html from "../effects/html.js";
+import * as html from "../effects/html/render.js";
+import signal from "../effects/signal.js";
 import sleep from "../effects/sleep.js";
 import * as capable from "../index.js";
 
@@ -22,20 +23,22 @@ capable.runtime.register(ReplaceText, (_component, { elem, new_text }) => {
   elem.innerText = new_text;
 });
 
-export function* AccordionItem({ title, children }) {
+export async function* AccordionItem({ title, children }) {
   let style = yield css.class`
   `;
 
-  let details = yield (
-    <details class={style}>
-      <summary>{title}</summary>
-      {children}
-    </details>
-  );
+  let $text = signal.of("yo");
 
-  if (title === "Hey") {
-    yield sleep.of(1000);
-    yield replace_text(details.querySelector("summary"), "sup");
+  for await (let text of $text) {
+    console.log("here");
+    yield (
+      <details class={style} open>
+        <summary>{title}</summary>
+        {children}
+        <input type="text" />
+        <p>{text}</p>
+      </details>
+    );
   }
 }
 
