@@ -5,7 +5,7 @@ export class Variant<Kinds extends Record<string, any>> {
     this.kind = kind;
     this.data = data;
   }
-  match(match_obj: Partial<{ [s in keyof Kinds]: (data: Kinds[s]) => any }>) {
-    return match_obj[this.kind]?.(this.data);
+  match(match_obj: { [s in keyof Kinds]: (data: Kinds[s]) => any }) {
+    return match_obj[this.kind](this.data);
   }
 }

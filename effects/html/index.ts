@@ -24,6 +24,7 @@ capable.runtime.register(
           old_elem
         );
         result.match({
+          InPlace() {},
           ReplaceElem({ elem }) {
             component.mount.replaceChild(elem, old_elem);
           },
