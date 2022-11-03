@@ -2,7 +2,7 @@ import { assert } from "../../utils/assert.js";
 import { is_async_generator, is_generator } from "../../utils/generators.js";
 import { render_html_node } from "./render.js";
 import { HtmlNode, HtmlNodeChild } from "./HtmlNode.js";
-import { Result } from "../../utils/result.js";
+import { Variant } from "../../utils/Variant.js";
 
 type DiffKinds = {
   InPlace: {};
@@ -10,11 +10,11 @@ type DiffKinds = {
   ReplaceElem: { elem: HTMLElement };
 };
 
-export let InPlace = new Result<DiffKinds>("InPlace", {});
+export let InPlace = new Variant<DiffKinds>("InPlace", {});
 export let ReplaceText = (text_node: Text) =>
-  new Result<DiffKinds>("ReplaceText", { text_node });
+  new Variant<DiffKinds>("ReplaceText", { text_node });
 export let ReplaceElem = (elem: HTMLElement) =>
-  new Result<DiffKinds>("ReplaceElem", { elem });
+  new Variant<DiffKinds>("ReplaceElem", { elem });
 
 type DiffResult =
   | typeof InPlace

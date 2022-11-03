@@ -1,4 +1,4 @@
-export class Result<Kinds extends Record<string, any>> {
+export class Variant<Kinds extends Record<string, any>> {
   kind: keyof Kinds;
   data: Kinds[keyof Kinds];
   constructor(kind: keyof Kinds, data: Kinds[string]) {
