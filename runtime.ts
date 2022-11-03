@@ -1,10 +1,13 @@
 export class Component {
-  fn: () => AsyncGenerator;
+  fn: () => AsyncGenerator | Generator;
   mount: HTMLElement;
   ctx: Record<string, any> = {};
   index_in_parent: number;
+  get rendered_elem(): HTMLElement {
+    return this.mount.children[this.index_in_parent] as HTMLElement;
+  }
   constructor(
-    fn: () => AsyncGenerator,
+    fn: () => AsyncGenerator | Generator,
     mount: HTMLElement,
     index_in_parent: number = 0
   ) {
@@ -17,7 +20,7 @@ export class Component {
 export let EffectEquals = Symbol("effect-equals");
 
 export function mount(
-  component_fn: () => AsyncGenerator,
+  component_fn: () => Generator | AsyncGenerator,
   mount?: HTMLElement,
   index = 0
 ) {
