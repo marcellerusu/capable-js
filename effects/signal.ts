@@ -7,14 +7,14 @@ export class Signal<T> {
     this.#value = value;
   }
 
-  async *[Symbol.asyncIterator]() {
+  async *[Symbol.asyncIterator](): AsyncGenerator<T, any, unknown> {
     yield this.#value;
     while (true) {
       yield await this.tick();
     }
   }
 
-  async tick() {
+  async tick(): Promise<T> {
     return new Promise((resolve) =>
       this.#on_change(() => {
         resolve(this.#value);

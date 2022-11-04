@@ -3,6 +3,7 @@ import { assert } from "../../utils/assert.js";
 import { diff_html_node } from "./diff.js";
 import { render_html_node } from "./render.js";
 import { HtmlNode } from "./HtmlNode.js";
+export { HtmlNode } from "./HtmlNode.js";
 
 capable.runtime.register(
   HtmlNode,

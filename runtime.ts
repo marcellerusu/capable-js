@@ -20,7 +20,7 @@ export class Component {
 export let EffectEquals = Symbol("effect-equals");
 
 export function mount(
-  component_fn: () => Generator | AsyncGenerator,
+  component_fn: (...args: any) => Generator | AsyncGenerator,
   mount?: HTMLElement,
   index = 0
 ) {

@@ -4,17 +4,17 @@ import { render_html_node } from "./render.js";
 import { HtmlNode, HtmlNodeChild } from "./HtmlNode.js";
 import { Variant } from "../../utils/Variant.js";
 
-type DiffKinds = {
+type DiffResults = {
   InPlace: {};
   ReplaceText: { text_node: Text };
   ReplaceElem: { elem: HTMLElement };
 };
 
-export let InPlace = new Variant<DiffKinds>("InPlace", {});
+export let InPlace = new Variant<DiffResults>("InPlace", {});
 export let ReplaceText = (text_node: Text) =>
-  new Variant<DiffKinds>("ReplaceText", { text_node });
+  new Variant<DiffResults>("ReplaceText", { text_node });
 export let ReplaceElem = (elem: HTMLElement) =>
-  new Variant<DiffKinds>("ReplaceElem", { elem });
+  new Variant<DiffResults>("ReplaceElem", { elem });
 
 function zip3<A, B, C>(
   array1: A[],
@@ -35,7 +35,7 @@ async function diff_child(
   new_node: HtmlNodeChild,
   old_node: HtmlNodeChild,
   elem: ChildNode
-): Promise<Variant<DiffKinds>> {
+): Promise<Variant<DiffResults>> {
   if (typeof new_node === "string") {
     assert(elem instanceof Text, "old elem should be a text node");
     return ReplaceText(new Text(new_node));
@@ -86,7 +86,7 @@ export async function diff_html_node(
   new_node: HtmlNode,
   old_node: HtmlNode | undefined,
   elem: HTMLElement
-): Promise<Variant<DiffKinds>> {
+): Promise<Variant<DiffResults>> {
   if (!old_node) return ReplaceElem(await render_html_node(new_node));
   if (new_node.name !== old_node.name)
     return ReplaceElem(await render_html_node(new_node));

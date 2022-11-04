@@ -5,7 +5,7 @@ A runtime that brings linear (top-to-bottom) reasoning to an async world.
 # Hello Example
 
 ```jsx
-async function* Main() {
+async function* Form() {
   let form_style = yield css.class`
     display: flex;
     justify-content: space-between;
@@ -24,6 +24,8 @@ async function* Main() {
   );
 
   let { name } = yield form_utils.on_submit(form);
+
+  yield http.post("/user", { name });
 
   yield css.global`
     color: hotpink;
