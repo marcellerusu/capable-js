@@ -1,6 +1,6 @@
 import * as capable from "../index.js";
 
-class StartInterval {
+export class StartInterval {
   delay: number;
   fn: Function;
   constructor(fn: Function, delay: number) {
@@ -13,7 +13,7 @@ class StartInterval {
   }
 }
 
-class StopInterval {
+export class StopInterval {
   id: number;
   constructor(id: number) {
     this.id = id;
@@ -35,6 +35,9 @@ capable.runtime.register(StopInterval, (_component, { id }) => {
 export default {
   each_second(fn: Function) {
     return new StartInterval(fn, 1000);
+  },
+  each_frame(fn: Function) {
+    return new StartInterval(fn, 1000 / 60);
   },
   stop(id: number) {
     return new StopInterval(id);

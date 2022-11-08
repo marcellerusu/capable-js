@@ -1,75 +1,137 @@
 import { on } from "../../effects/events.js";
-import { clear, resize, square } from "./canvas.js";
+import { circle, clear, resize } from "./canvas/index.js";
 import * as capable from "../../index.js";
-import signal, { Signal } from "../../effects/signal.js";
+import { Signal } from "../../effects/signal.js";
 import { Variant } from "../../utils/Variant.js";
+import interval from "../../effects/interval.js";
 
-class Go<T> {
-  component: AsyncGeneratorFunction;
-  constructor(component: AsyncGeneratorFunction) {
+class Spawn<T> {
+  component: (...args: any) => AsyncGenerator;
+  constructor(component: (...args: any) => AsyncGenerator) {
     this.component = component;
   }
-  [capable.runtime.EffectEquals](other: Go<T>) {
+  [capable.runtime.EffectEquals](other: Spawn<T>) {
     return this.component === other.component;
   }
 }
 
-function go(component) {
-  return new Go(component);
+class Channel<T> {
+  #listener_queue: Function[] = [];
+  msgs: T[] = [];
+  send(msg: T): Promise<T> {
+    this.msgs.push(msg);
+    this.#listener_queue.forEach((fn) => fn(msg));
+    this.#listener_queue = [];
+    return this.tick();
+  }
+  async *[Symbol.asyncIterator](): AsyncGenerator<T, any, unknown> {
+    for (let msg of this.msgs) {
+      yield msg;
+    }
+    while (true) {
+      yield await this.receive();
+    }
+  }
+  receive(): Promise<T> {
+    let msg = this.msgs.pop();
+    if (msg) return Promise.resolve(msg);
+    return this.tick();
+  }
+  tick(): Promise<T> {
+    return new Promise((resolve) => this.#listener_queue.push(resolve));
+  }
 }
 
-capable.runtime.register(Go, (component, go) => {
-  let channel = signal.of(null);
-  let sub_component = capable.runtime.mount(async function* (props) {
-    yield* go.component({ ...props, channel });
-  }, component.mount);
-  capable.runtime.run(sub_component);
-  return (message) => (channel.value = message);
-});
+function spawn(component: (...args: any) => AsyncGenerator) {
+  return new Spawn(component);
+}
 
-let SPEED = 5;
+capable.runtime.register(Spawn, (component, go) => {
+  let $channel = new Channel();
+  async function* process() {
+    yield* go.component($channel);
+  }
+  let sub_component = capable.runtime.mount(process, component.mount);
+  capable.runtime.run(sub_component);
+  return $channel;
+});
 
 type BallMsg = {
   Left: {};
   Right: {};
   Up: {};
   Down: {};
+  Tick: {};
 };
 
-let Left = new Variant<BallMsg>("Left", {});
-let Right = new Variant<BallMsg>("Right", {});
-let Up = new Variant<BallMsg>("Up", {});
-let Down = new Variant<BallMsg>("Down", {});
+const Left = new Variant<BallMsg>("Left", {});
+const Right = new Variant<BallMsg>("Right", {});
+const Up = new Variant<BallMsg>("Up", {});
+const Down = new Variant<BallMsg>("Down", {});
+const Tick = new Variant<BallMsg>("Tick", {});
 
-type BallProps = {
-  channel: Signal<Variant<BallMsg>>;
-};
+const ACCELERATION = 0.1;
 
-async function* Ball({ channel }: BallProps) {
+async function* Ball($channel: Channel<Variant<BallMsg>>) {
+  let vx = 0;
+  let vy = 0;
   let [x, y] = [10, 10];
 
-  for await (let msg of channel) {
+  for await (let msg of $channel) {
+    console.log("here", msg);
     msg?.match({
-      Left: () => (x -= SPEED),
-      Right: () => (x += SPEED),
-      Up: () => (y -= SPEED),
-      Down: () => (y += SPEED),
+      Left: () => (vx -= ACCELERATION),
+      Right: () => (vx += ACCELERATION),
+      Up: () => (vy -= ACCELERATION),
+      Down: () => (vy += ACCELERATION),
+      Tick() {
+        x += vx;
+        y += vy;
+      },
     });
     yield clear();
-    yield square(x, y, 100);
+    yield circle(x, y, 1);
+  }
+}
+
+type ChildMsg = {
+  Ping: {};
+  Pong: {};
+};
+
+let Ping = new Variant<ChildMsg>("Ping", {});
+let Pong = new Variant<ChildMsg>("Pong", {});
+
+async function* Child($channel: Channel<Variant<ChildMsg>>) {
+  for await (let msg of $channel) {
+    msg?.match({
+      Ping() {
+        $channel.send(Pong);
+      },
+    });
   }
 }
 
 async function* Game() {
-  yield resize(500, 500);
-  let send = yield go(Ball);
-  while (true) {
-    let { key } = yield on.keydown(window);
-    if (key === "ArrowLeft") send(Left);
-    else if (key === "ArrowRight") send(Right);
-    else if (key === "ArrowUp") send(Up);
-    else if (key === "ArrowDown") send(Down);
-  }
+  let child: Channel<Variant<ChildMsg>> = yield spawn(Child);
+  let c = await child.send(Ping);
+
+  let response = await child.receive();
+
+  console.log(c, response);
 }
+
+// async function* Game() {
+//   yield resize(500, 500);
+//   let ball: Channel<Variant<BallMsg>> = yield spawn(Ball);
+//   yield interval.each_frame(() => ball.send(Tick));
+//   while (true) {
+//     let { key } = yield on.keydown(window);
+//     if (key === "ArrowLeft") ball.send(Left);
+//     else if (key === "ArrowRight") ball.send(Right);
+//     else if (key === "ArrowUp") ball.send(Up);
+//     else if (key === "ArrowDown") ball.send(Down);
+//   }
+// }
 
 export default Game;

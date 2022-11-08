@@ -1,6 +1,6 @@
 import * as capable from "../index.js";
 
-class Event {
+export class EventEff {
   type: string;
   elem: EventTarget;
   constructor(type: string, elem: EventTarget) {
@@ -10,18 +10,18 @@ class Event {
 }
 
 capable.runtime.register(
-  Event,
+  EventEff,
   (_component, { type, elem }) =>
     new Promise((resolve) => elem.addEventListener(type, resolve))
 );
 
-type EventHandler = Record<string, (elem?: EventTarget) => Event>;
+type EventHandler = Record<string, (elem?: EventTarget) => EventEff>;
 
 export let on = new Proxy<EventHandler>(
   {},
   {
-    get(_target, event_name, _receiver): (elem?: EventTarget) => Event {
-      return (elem = window) => new Event(event_name as string, elem);
+    get(_target, event_name, _receiver): (elem?: EventTarget) => EventEff {
+      return (elem = window) => new EventEff(event_name as string, elem);
     },
   }
 );

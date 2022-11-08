@@ -16,14 +16,14 @@ export class Signal<T> {
 
   async tick(): Promise<T> {
     return new Promise((resolve) =>
-      this.#on_change(() => {
+      this.on_change(() => {
         resolve(this.#value);
         return true;
       })
     );
   }
 
-  #on_change(fn) {
+  on_change(fn: Function) {
     this.#listeners.push(fn);
   }
 
